@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.game.pantallas.Pantalla1;
 import com.game.utils.Learn;
 
 public class MainManuScreen extends Screens{
@@ -39,7 +40,7 @@ public class MainManuScreen extends Screens{
     private Screens getScreen(Learn learn){
         switch (learn){
             default:
-                return new Learn1(game);
+                return new Pantalla1(game);
 
         }
     }
