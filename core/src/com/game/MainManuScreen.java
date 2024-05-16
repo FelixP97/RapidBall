@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.game.pantallas.Pantalla1;
+import com.game.pantallas.Pantalla2;
 import com.game.utils.Learn;
 
 public class MainManuScreen extends Screens{
@@ -27,12 +28,12 @@ public class MainManuScreen extends Screens{
                 }
             });
 
-            menu.row().padTop(20).height(50);
+            menu.row().padTop(20).width(500).height(55);
             menu.add(bt).fillX();
         }
 
         scroll = new ScrollPane(menu,Assets.scrollPaneStyle);
-        scroll.setSize(500,SCREEN_HEIGHT);
+        scroll.setSize(325,SCREEN_HEIGHT);
         scroll.setPosition(150,0);
         stage.addActor(scroll);
     }
@@ -41,7 +42,8 @@ public class MainManuScreen extends Screens{
         switch (learn){
             default:
                 return new Pantalla1(game);
-
+            case PANTALLA_2:
+                return new Pantalla2(game);
         }
     }
 

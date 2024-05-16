@@ -11,8 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 public abstract class Screens extends InputAdapter implements Screen {
-    public static final float SCREEN_WIDTH = 800;
-    public static  final  float SCREEN_HEIGHT = 400;
+    public static final float SCREEN_WIDTH = 640;
+    public static  final  float SCREEN_HEIGHT = 920;
 
     public static  final  float WORLD_HEIGHT = 4.8f;
     public static  final  float WORLD_WIDTH = 8f;
@@ -29,8 +29,9 @@ public abstract class Screens extends InputAdapter implements Screen {
 
         stage = new Stage(new StretchViewport(Screens.SCREEN_WIDTH,Screens.SCREEN_HEIGHT));
 
-        oCamUI = new OrthographicCamera(Screens.SCREEN_WIDTH,Screens.SCREEN_HEIGHT);
+        oCamUI = new OrthographicCamera(Screens.SCREEN_WIDTH,Screens.SCREEN_HEIGHT );
         oCamUI.position.set(SCREEN_WIDTH / 2f,SCREEN_HEIGHT / 2f,0);
+
 
         oCamBox2D = new OrthographicCamera(Screens.WORLD_WIDTH,Screens.WORLD_HEIGHT);
         oCamBox2D.position.set(WORLD_WIDTH / 2f,WORLD_HEIGHT / 2f,0);
@@ -64,7 +65,9 @@ public abstract class Screens extends InputAdapter implements Screen {
 
     @Override
     public void resize(int width, int height) {
+
         stage.getViewport().update(width,height,true);
+
     }
 
     public abstract void draw(float delta);
