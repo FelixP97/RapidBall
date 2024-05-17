@@ -8,13 +8,14 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 
 public abstract class Screens extends InputAdapter implements Screen {
     public static final float SCREEN_WIDTH = 640;
     public static  final  float SCREEN_HEIGHT = 920;
 
-    public static  final  float WORLD_HEIGHT = 4.8f;
+    public static  final  float WORLD_HEIGHT = 11.5f;
     public static  final  float WORLD_WIDTH = 8f;
 
     public RapidBall game;
@@ -65,8 +66,10 @@ public abstract class Screens extends InputAdapter implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        // Actualizar la vista del stage
+        stage.getViewport().update(width, height, true);
 
-        stage.getViewport().update(width,height,true);
+
 
     }
 
