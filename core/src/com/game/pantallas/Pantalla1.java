@@ -1,6 +1,7 @@
 package com.game.pantallas;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
@@ -19,19 +20,30 @@ public class Pantalla1 extends Screens {
 
     Box2DDebugRenderer renderer;
     World oWorld;
-    TextureRegion ball;
+    TextureRegion ballTexture;
+
+    private Body ballBody;
     public Pantalla1(RapidBall game) {
         super(game);
-        Vector2 gravity = new Vector2(0,-9.8f);
-        oWorld = new World(gravity,true);
-        renderer = new Box2DDebugRenderer();
-
-        ball = new TextureRegion(new Texture(Gdx.files.internal("data/ball.png")));
-
+        initializeWorld();
+        initializeRenderer();
+        loadTextures();
         createFloor();
         createBall();
 
 
+    }
+    private void initializeWorld(){
+        Vector2 gravity = new Vector2(0,-9.8f);
+        oWorld = new World(gravity,true);
+    }
+
+    private void initializeRenderer(){
+        renderer = new Box2DDebugRenderer();
+    }
+
+    private void loadTextures(){
+        ballTexture = new TextureRegion(new Texture(Gdx.files.internal("data/ball.png")));
     }
     private void createFloor(){
         BodyDef bd = new BodyDef();
@@ -63,32 +75,39 @@ public class Pantalla1 extends Screens {
         fixDef.friction = .5f;
         fixDef.restitution = .5f;
 
-        Body body = oWorld.createBody(bd);
-        body.createFixture(fixDef);
+        ballBody = oWorld.createBody(bd);
+        ballBody.createFixture(fixDef);
         shape.dispose();
     }
 
     @Override
     public void draw(float delta) {
         oCamUI.update();
+        spriteBatch.setProjectionMatrix(oCamBox2D.combined);
+
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        spriteBatch.begin();
+        // Dibujar la textura de la bola en la posición del cuerpo
+        Vector2 ballPosition = ballBody.getPosition();
+        spriteBatch.draw(ballTexture,
+                ballPosition.x - 0.15f,
+                ballPosition.y - 0.15f,
+                0.3f,
+                0.3f);
+
+        spriteBatch.end();
+        renderer.render(oWorld, oCamBox2D.combined);
+
+        oCamBox2D.update();
         spriteBatch.setProjectionMatrix(oCamUI.combined);
 
         spriteBatch.begin();
         Assets.font.draw(spriteBatch,"Fps:"+ Gdx.graphics.getFramesPerSecond(),0,20);
         spriteBatch.end();
-
-        oCamBox2D.update();
-        spriteBatch.setProjectionMatrix(oCamBox2D.combined);
-        spriteBatch.begin();
-        drawGameObjects();
-        spriteBatch.end();
-
-        renderer.render(oWorld, oCamBox2D.combined);
     }
 
-    private void drawGameObjects(){
-        
-    }
+
 
 
     @Override
@@ -96,21 +115,12 @@ public class Pantalla1 extends Screens {
         oWorld.step(delta,8,6);
     }
 
-    static public class GameObject{
-        static final int Ball = 0;
-        static final int Box = 1;
-        final int type;
-        float angleDeg;
-        Vector2 position;
-
-        public GameObject(float x,float y,int type) {
-            position = new Vector2(x,y);
-            this.type = type;
-        }
-        public void update(Body body){
-            position.x = body.getPosition().x;
-            position.y = body.getPosition().y;
-            angleDeg = (float) Math.toDegrees(body.getAngle());
-        }
+    @Override
+    public void dispose() {
+        // Libera recursos cuando ya no sean necesarios
+        ballTexture.getTexture().dispose();
+        oWorld.dispose();
+        renderer.dispose();
+        super.dispose();
     }
 }
