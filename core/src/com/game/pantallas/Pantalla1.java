@@ -15,11 +15,13 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
+import com.game.prefabs.BallPrefab;
 
 public class Pantalla1 extends Screens {
 
     Box2DDebugRenderer renderer;
     World oWorld;
+    private BallPrefab ballPrefab;
     TextureRegion ballTexture;
 
     private Body ballBody;
@@ -62,22 +64,7 @@ public class Pantalla1 extends Screens {
     }
 
     private void createBall(){
-        BodyDef bd = new BodyDef();
-        bd.position.set(4f,11f);
-        bd.type = BodyDef.BodyType.DynamicBody;
-
-        CircleShape shape = new CircleShape();
-        shape.setRadius(.15f);
-
-        FixtureDef fixDef = new FixtureDef();
-        fixDef.shape = shape;
-        fixDef.density = 15;
-        fixDef.friction = .5f;
-        fixDef.restitution = .5f;
-
-        ballBody = oWorld.createBody(bd);
-        ballBody.createFixture(fixDef);
-        shape.dispose();
+        ballPrefab = new BallPrefab(oWorld, ballTexture, 4f,11f,0.15f);
     }
 
     @Override
@@ -88,13 +75,9 @@ public class Pantalla1 extends Screens {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         spriteBatch.begin();
-        // Dibujar la textura de la bola en la posición del cuerpo
-        Vector2 ballPosition = ballBody.getPosition();
-        spriteBatch.draw(ballTexture,
-                ballPosition.x - 0.15f,
-                ballPosition.y - 0.15f,
-                0.3f,
-                0.3f);
+
+        // Dibujar la bola utilizando el prefab
+        ballPrefab.draw(spriteBatch);
 
         spriteBatch.end();
         renderer.render(oWorld, oCamBox2D.combined);

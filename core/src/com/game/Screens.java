@@ -18,8 +18,6 @@ public abstract class Screens extends InputAdapter implements Screen {
     public static  final  float WORLD_HEIGHT = 11.5f;
     public static  final  float WORLD_WIDTH = 8f;
 
-    // Definición de PPM (Pixeles Por Metro)
-    public static final float PPM = 100f;
 
     public RapidBall game;
     public OrthographicCamera oCamUI;
