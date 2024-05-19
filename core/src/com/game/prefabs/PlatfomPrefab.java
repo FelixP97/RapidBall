@@ -26,7 +26,7 @@ public class PlatfomPrefab {
         bd.type = BodyDef.BodyType.KinematicBody;
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(0.5f,0.2f);// Tamaño de la plataforma
+        shape.setAsBox(0.40f,0.10f);// Tamaño de la plataforma
 
         FixtureDef fixDef = new FixtureDef();
         fixDef.shape = shape;
@@ -40,9 +40,9 @@ public class PlatfomPrefab {
     public void draw(SpriteBatch spriteBatch) {
         Vector2 position = body.getPosition();
         spriteBatch.draw(texture,
-                position.x - 2,
-                position.y - 0.5f,
-                4, 1);
+                position.x - 0.40f,
+                position.y - 0.1f,
+                0.80f, 0.20f);
     }
 
     public Body getBody() {

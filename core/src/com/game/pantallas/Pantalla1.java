@@ -48,7 +48,7 @@ public class Pantalla1 extends Screens {
 
     private void loadTextures(){
         ballTexture = new TextureRegion(new Texture(Gdx.files.internal("data/ball.png")));
-        platformTexture = new TextureRegion(new Texture(Gdx.files.internal("data/box.png")));
+        platformTexture = new TextureRegion(new Texture(Gdx.files.internal("data/platform.png")));
     }
     private void createFloor(){
         BodyDef bd = new BodyDef();
