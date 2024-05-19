@@ -16,15 +16,16 @@ import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
 import com.game.prefabs.BallPrefab;
+import com.game.prefabs.PlatfomPrefab;
 
 public class Pantalla1 extends Screens {
 
     Box2DDebugRenderer renderer;
     World oWorld;
     private BallPrefab ballPrefab;
-    TextureRegion ballTexture;
+    private PlatfomPrefab platfomPrefab;
+    TextureRegion ballTexture,platformTexture;
 
-    private Body ballBody;
     public Pantalla1(RapidBall game) {
         super(game);
         initializeWorld();
@@ -32,6 +33,7 @@ public class Pantalla1 extends Screens {
         loadTextures();
         createFloor();
         createBall();
+        createPlatform();
 
 
     }
@@ -46,6 +48,7 @@ public class Pantalla1 extends Screens {
 
     private void loadTextures(){
         ballTexture = new TextureRegion(new Texture(Gdx.files.internal("data/ball.png")));
+        platformTexture = new TextureRegion(new Texture(Gdx.files.internal("data/box.png")));
     }
     private void createFloor(){
         BodyDef bd = new BodyDef();
@@ -67,6 +70,10 @@ public class Pantalla1 extends Screens {
         ballPrefab = new BallPrefab(oWorld, ballTexture, 4f,11f,0.15f);
     }
 
+    private void createPlatform(){
+        platfomPrefab = new PlatfomPrefab(oWorld,platformTexture,4f,5f);
+    }
+
     @Override
     public void draw(float delta) {
         oCamUI.update();
@@ -78,8 +85,11 @@ public class Pantalla1 extends Screens {
 
         // Dibujar la bola utilizando el prefab
         ballPrefab.draw(spriteBatch);
+        platfomPrefab.draw(spriteBatch);
 
         spriteBatch.end();
+
+
         renderer.render(oWorld, oCamBox2D.combined);
 
         oCamBox2D.update();
@@ -102,6 +112,7 @@ public class Pantalla1 extends Screens {
     public void dispose() {
         // Libera recursos cuando ya no sean necesarios
         ballTexture.getTexture().dispose();
+        platformTexture.getTexture().dispose();
         oWorld.dispose();
         renderer.dispose();
         super.dispose();
