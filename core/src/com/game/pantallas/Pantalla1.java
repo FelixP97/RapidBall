@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
+import com.game.controller.PlayerController;
 import com.game.prefabs.BallPrefab;
 import com.game.prefabs.PlatfomPrefab;
 
@@ -26,6 +27,10 @@ public class Pantalla1 extends Screens {
     private PlatfomPrefab platfomPrefab;
     TextureRegion ballTexture,platformTexture;
 
+    private PlayerController playerController;
+    private boolean dragging = false;
+    private Vector2 lastTouch = new Vector2();
+
     public Pantalla1(RapidBall game) {
         super(game);
         initializeWorld();
@@ -34,6 +39,9 @@ public class Pantalla1 extends Screens {
         createFloor();
         createBall();
         createPlatform();
+
+        // Initialize PlayerController with the BallPrefab instance
+        playerController = new PlayerController(ballPrefab);
 
 
     }
@@ -116,5 +124,30 @@ public class Pantalla1 extends Screens {
         oWorld.dispose();
         renderer.dispose();
         super.dispose();
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        dragging = true;
+        lastTouch.set(screenX, screenY);
+        return true;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        if (dragging) {
+            Vector2 currentTouch = new Vector2(screenX, screenY);
+            float deltaX = currentTouch.x - lastTouch.x;
+            // Llama al método handleInput del controlador del jugador
+            playerController.handleInput(deltaX);
+            lastTouch.set(currentTouch);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        dragging = false;
+        return true;
     }
 }
