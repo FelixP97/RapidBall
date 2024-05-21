@@ -48,4 +48,7 @@ public class PlatfomPrefab {
     public Body getBody() {
         return body;
     }
+
+    public void update(float delta) {
+    }
 }

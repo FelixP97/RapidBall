@@ -12,12 +12,15 @@ import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
 import com.game.controller.PlayerController;
 import com.game.prefabs.BallPrefab;
 import com.game.prefabs.PlatfomPrefab;
+
+import java.util.Random;
 
 public class Pantalla1 extends Screens {
 
@@ -30,15 +33,18 @@ public class Pantalla1 extends Screens {
     private PlayerController playerController;
     private boolean dragging = false;
     private Vector2 lastTouch = new Vector2();
+    private Array<PlatfomPrefab> platforms;
+    private Random random;
+    private float screenBottom;
 
     public Pantalla1(RapidBall game) {
         super(game);
         initializeWorld();
         initializeRenderer();
         loadTextures();
-        createFloor();
         createBall();
-        createPlatform();
+        random = new Random();
+        createPlatforms();
 
         // Initialize PlayerController with the BallPrefab instance
         playerController = new PlayerController(ballPrefab);
@@ -58,28 +64,21 @@ public class Pantalla1 extends Screens {
         ballTexture = new TextureRegion(new Texture(Gdx.files.internal("data/ball.png")));
         platformTexture = new TextureRegion(new Texture(Gdx.files.internal("data/platform.png")));
     }
-    private void createFloor(){
-        BodyDef bd = new BodyDef();
-        bd.position.set(0,0.5f);
-        bd.type = BodyDef.BodyType.StaticBody;
 
-        EdgeShape shape = new EdgeShape();
-        shape.set(0,0,WORLD_WIDTH,0);
-
-        FixtureDef fixDef= new FixtureDef();
-        fixDef.shape = shape;
-
-        Body oBody = oWorld.createBody(bd);
-        oBody.createFixture(fixDef);
-        shape.dispose();
-    }
 
     private void createBall(){
         ballPrefab = new BallPrefab(oWorld, ballTexture, 4f,11f,0.15f);
     }
 
-    private void createPlatform(){
-        platfomPrefab = new PlatfomPrefab(oWorld,platformTexture,4f,5f);
+    private void createPlatforms(){
+        platforms = new Array<PlatfomPrefab>();
+        // Crear varias plataformas con posiciones aleatorias
+        for (int i = 0; i < 10; i++) {
+            float x = random.nextFloat() * (oCamBox2D.viewportWidth - 1) + 0.5f; // Valor aleatorio entre 0.5 y viewportWidth - 0.5
+            float y = i * 2f; // Separación vertical de 2 unidades entre plataformas
+            platforms.add(new PlatfomPrefab(oWorld, platformTexture, x, y));
+
+        }
     }
 
     @Override
@@ -93,7 +92,10 @@ public class Pantalla1 extends Screens {
 
         // Dibujar la bola utilizando el prefab
         ballPrefab.draw(spriteBatch);
-        platfomPrefab.draw(spriteBatch);
+        // Dibujar todas las plataformas
+        for (PlatfomPrefab platform : platforms) {
+            platform.draw(spriteBatch);
+        }
 
         spriteBatch.end();
 
@@ -114,6 +116,58 @@ public class Pantalla1 extends Screens {
     @Override
     public void update(float delta) {
         oWorld.step(delta,8,6);
+        Vector2 ballPosition = ballPrefab.getBody().getPosition();
+
+        // Actualizar la posición de la cámara para que siga al jugador mientras se mueve hacia abajo
+        if (ballPosition.y < oCamBox2D.position.y) {
+            oCamBox2D.position.y = ballPosition.y;
+        }
+
+        // Generar nuevas plataformas por debajo de la cámara
+        generateNewPlatforms();
+
+        // Actualizar todas las plataformas
+        for (PlatfomPrefab platform : platforms) {
+            platform.update(delta);
+        }
+
+        // Verificar si el jugador sale de los límites de la pantalla
+        checkGameOver();
+
+        oCamBox2D.update();
+    }
+
+    private void generateNewPlatforms() {
+        float cameraBottom = oCamBox2D.position.y - oCamBox2D.viewportHeight / 2;
+
+        // Eliminar plataformas que están fuera de la vista
+        Array<PlatfomPrefab> platformsToRemove = new Array<PlatfomPrefab>();
+        for (PlatfomPrefab platform : platforms) {
+            if (platform.getBody().getPosition().y > oCamBox2D.position.y + oCamBox2D.viewportHeight / 2) {
+                platformsToRemove.add(platform);
+            }
+        }
+        platforms.removeAll(platformsToRemove, true);
+
+        // Generar nuevas plataformas por debajo de la cámara
+        while (platforms.size < 10) { // Siempre tener 10 plataformas en pantalla
+            float x = random.nextFloat() * (oCamBox2D.viewportWidth - 1) + 0.5f;
+            float y = cameraBottom - random.nextFloat() * 2f; // Generar en una altura ligeramente por debajo de la vista actual
+            platforms.add(new PlatfomPrefab(oWorld, platformTexture, x, y));
+            cameraBottom -= 2f; // Separación vertical de 2 unidades entre plataformas
+        }
+    }
+
+    private void checkGameOver() {
+        Vector2 ballPosition = ballPrefab.getBody().getPosition();
+        float cameraTop = oCamBox2D.position.y + oCamBox2D.viewportHeight / 2;
+        float cameraBottom = oCamBox2D.position.y - oCamBox2D.viewportHeight / 2;
+
+        // Verificar si el jugador se sale de los límites de la pantalla
+        if (ballPosition.y > cameraTop || ballPosition.y < cameraBottom) {
+            // Acción de game over: puedes mostrar una pantalla de game over, reiniciar el nivel, etc.
+            System.out.println("Game Over");
+        }
     }
 
     @Override
