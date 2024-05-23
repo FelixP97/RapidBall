@@ -34,7 +34,7 @@ public class BallPrefab {
         fixDef.shape = shape;
         fixDef.density = 15;
         fixDef.friction = 0.5f;
-        fixDef.restitution = 0.5f;
+        fixDef.restitution = 0.2f;
 
         body = world.createBody(bd);
         body.createFixture(fixDef);
