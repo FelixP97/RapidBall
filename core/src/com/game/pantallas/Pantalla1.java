@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 
 import com.badlogic.gdx.physics.box2d.World;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.utils.Array;
 import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
+import com.game.controller.GameCameraController;
 import com.game.controller.PlayerController;
 import com.game.prefabs.BallPrefab;
 import com.game.prefabs.PlatfomPrefab;
@@ -25,23 +27,19 @@ public class Pantalla1 extends Screens {
     Box2DDebugRenderer renderer;
     World oWorld;
     private BallPrefab ballPrefab;
-    private PlatfomPrefab platfomPrefab;
     TextureRegion ballTexture,platformTexture;
-
     private PlayerController playerController;
     private boolean dragging = false;
     private Vector2 lastTouch = new Vector2();
     private Array<PlatfomPrefab> platforms;
     private Random random;
-
-    private float cameraSpeed = 0.5f; // Velocidad inicial de la cámara
-    private float cameraAcceleration = 0.01f; // Incremento de la velocidad de la cámara
-    private float maxCameraSpeed = 5f; // Velocidad máxima de la cámara
-
     private boolean isGameOver = false;
-
-    // Definir una variable para el mensaje de Game Over
     private BitmapFont gameOverFont;
+    private BitmapFont restartFont;
+    private String restartMessage = "Jugar de nuevo";
+    private float restartX, restartY;
+
+    private GameCameraController gameCamera;
 
     public Pantalla1(RapidBall game) {
         super(game);
@@ -52,14 +50,19 @@ public class Pantalla1 extends Screens {
         random = new Random();
         createPlatforms();
 
-        // Initialize PlayerController with the BallPrefab instance
         playerController = new PlayerController(ballPrefab);
 
-        // Inicializar y escalar la fuente para el mensaje de Game Over
         gameOverFont = new BitmapFont();
         gameOverFont.getData().setScale(3f);
 
+        restartFont = new BitmapFont();
+        restartFont.getData().setScale(2.25f);
 
+        restartX = oCamUI.viewportWidth / 2f - restartFont.getRegion().getRegionWidth() / 2;
+        restartY = oCamUI.viewportHeight / 2f - gameOverFont.getCapHeight() / 2 - 50; // Ajustar la posición según sea necesario
+
+        // Inicializar GameCamera
+        gameCamera = new GameCameraController(oCamBox2D.viewportWidth, oCamBox2D.viewportHeight);
     }
     private void initializeWorld(){
         Vector2 gravity = new Vector2(0,-9.8f);
@@ -93,16 +96,17 @@ public class Pantalla1 extends Screens {
 
     @Override
     public void draw(float delta) {
+        gameCamera.update(delta);
+
         oCamUI.update();
-        spriteBatch.setProjectionMatrix(oCamBox2D.combined);
+        spriteBatch.setProjectionMatrix(gameCamera.getCamera().combined);
 
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         spriteBatch.begin();
 
-        // Dibujar la bola utilizando el prefab
         ballPrefab.draw(spriteBatch);
-        // Dibujar todas las plataformas
+
         for (PlatfomPrefab platform : platforms) {
             platform.draw(spriteBatch);
         }
@@ -110,11 +114,11 @@ public class Pantalla1 extends Screens {
         spriteBatch.end();
 
         if (!isGameOver) {
-            renderer.render(oWorld, oCamBox2D.combined);
+            renderer.render(oWorld, gameCamera.getCamera().combined);
         }
 
 
-        oCamBox2D.update();
+        //oCamBox2D.update();
         spriteBatch.setProjectionMatrix(oCamUI.combined);
 
         spriteBatch.begin();
@@ -127,29 +131,24 @@ public class Pantalla1 extends Screens {
             float messageX = oCamUI.viewportWidth / 2f - messageWidth / 2;
             float messageY = oCamUI.viewportHeight / 2f + messageHeight / 2;
             gameOverFont.draw(spriteBatch, gameOverMessage, messageX, messageY);
+
+            restartX = oCamUI.viewportWidth / 2f - restartFont.getRegion().getRegionWidth() / 2;
+            restartY = messageY - 50; // Debajo del mensaje de Game Over
+            restartFont.draw(spriteBatch, restartMessage, restartX, restartY);
         }
         spriteBatch.end();
     }
-
-
-
-
     @Override
     public void update(float delta) {
         if (isGameOver) {
-            return; // No actualizar nada si el juego ha terminado
+            return;
         }
 
         oWorld.step(delta,8,6);
         Vector2 ballPosition = ballPrefab.getBody().getPosition();
 
-        // Actualizar la posición de la cámara para que se mueva hacia abajo
-        oCamBox2D.position.y -= cameraSpeed * delta;
-
-        // Incrementar la velocidad de la cámara gradualmente
-        if (cameraSpeed < maxCameraSpeed) {
-            cameraSpeed += cameraAcceleration * delta;
-        }
+        /// La cámara se actualiza a través de GameCameraController
+        gameCamera.update(delta);
 
         // Generar nuevas plataformas por debajo de la cámara
         generateNewPlatforms();
@@ -159,59 +158,63 @@ public class Pantalla1 extends Screens {
             platform.update(delta);
         }
 
-        // Verificar si el jugador sale de los límites de la pantalla
         checkGameOver();
 
-        oCamBox2D.update();
     }
 
     private void generateNewPlatforms() {
-        float cameraBottom = oCamBox2D.position.y - oCamBox2D.viewportHeight / 2;
+        float cameraBottom = gameCamera.getCamera().position.y - gameCamera.getCamera().viewportHeight / 2;
 
-        // Eliminar plataformas que están fuera de la vista
         Array<PlatfomPrefab> platformsToRemove = new Array<PlatfomPrefab>();
         for (PlatfomPrefab platform : platforms) {
-            if (platform.getBody().getPosition().y > oCamBox2D.position.y + oCamBox2D.viewportHeight / 2) {
+            if (platform.getBody().getPosition().y > gameCamera.getCamera().position.y + gameCamera.getCamera().viewportHeight / 2) {
                 platformsToRemove.add(platform);
             }
         }
         platforms.removeAll(platformsToRemove, true);
 
-        // Generar nuevas plataformas por debajo de la cámara
-        while (platforms.size < 10) { // Siempre tener 10 plataformas en pantalla
-            float x = random.nextFloat() * (oCamBox2D.viewportWidth - 1) + 0.5f;
-            float y = cameraBottom - random.nextFloat() * 2f; // Generar en una altura ligeramente por debajo de la vista actual
+        while (platforms.size < 10) {
+            float x = random.nextFloat() * (gameCamera.getCamera().viewportWidth - 1) + 0.5f;
+            float y = cameraBottom - random.nextFloat() * 2f;
             platforms.add(new PlatfomPrefab(oWorld, platformTexture, x, y));
-            cameraBottom -= 2f; // Separación vertical de 2 unidades entre plataformas
+            cameraBottom -= 2f;
         }
     }
 
     private void checkGameOver() {
         Vector2 ballPosition = ballPrefab.getBody().getPosition();
-        float cameraTop = oCamBox2D.position.y + oCamBox2D.viewportHeight / 2;
-        float cameraBottom = oCamBox2D.position.y - oCamBox2D.viewportHeight / 2;
+        float cameraTop = gameCamera.getCamera().position.y + gameCamera.getCamera().viewportHeight / 2;
+        float cameraBottom = gameCamera.getCamera().position.y - gameCamera.getCamera().viewportHeight / 2;
 
-        // Verificar si el jugador se sale de los límites de la pantalla
         if (ballPosition.y > cameraTop || ballPosition.y < cameraBottom) {
-            // Acción de game over: puedes mostrar una pantalla de game over, reiniciar el nivel, etc.
             isGameOver = true;
+            gameCamera.setActive(false); // Detener la cámara
         }
     }
 
     @Override
     public void dispose() {
-        // Libera recursos cuando ya no sean necesarios
         ballTexture.getTexture().dispose();
         platformTexture.getTexture().dispose();
         oWorld.dispose();
         renderer.dispose();
         gameOverFont.dispose();
+        restartFont.dispose();
         super.dispose();
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if (isGameOver) return false;
+        if (isGameOver) {
+            Vector3 touchPos = new Vector3(screenX, screenY, 0);
+            oCamUI.unproject(touchPos);
+
+            if (touchPos.x >= restartX && touchPos.x <= restartX + restartFont.getRegion().getRegionWidth()
+                    && touchPos.y >= restartY - restartFont.getCapHeight() && touchPos.y <= restartY) {
+                restartGame();
+            }
+            return true;
+        }
         dragging = true;
         lastTouch.set(screenX, screenY);
         return true;
@@ -223,7 +226,6 @@ public class Pantalla1 extends Screens {
         if (dragging) {
             Vector2 currentTouch = new Vector2(screenX, screenY);
             float deltaX = currentTouch.x - lastTouch.x;
-            // Llama al método handleInput del controlador del jugador
             playerController.handleInput(deltaX);
             lastTouch.set(currentTouch);
         }
@@ -235,5 +237,15 @@ public class Pantalla1 extends Screens {
         if (isGameOver) return false;
         dragging = false;
         return true;
+    }
+
+    private void restartGame() {
+        initializeWorld();
+        createBall();
+        createPlatforms();
+        playerController = new PlayerController(ballPrefab);
+        isGameOver = false;
+        gameCamera.reset();
+        gameCamera.setActive(true); // Reactivar la cámara
     }
 }
