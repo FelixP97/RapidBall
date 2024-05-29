@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Array;
 import com.game.Assets;
 import com.game.RapidBall;
 import com.game.Screens;
+import com.game.controller.DistanceCounterController;
 import com.game.controller.GameCameraController;
 import com.game.controller.PlayerController;
 import com.game.prefabs.BallPrefab;
@@ -40,6 +41,7 @@ public class Pantalla1 extends Screens {
     private float restartX, restartY;
 
     private GameCameraController gameCamera;
+    private DistanceCounterController distanceCounter;
 
     public Pantalla1(RapidBall game) {
         super(game);
@@ -63,6 +65,10 @@ public class Pantalla1 extends Screens {
 
         // Inicializar GameCamera
         gameCamera = new GameCameraController(oCamBox2D.viewportWidth, oCamBox2D.viewportHeight);
+        gameCamera.setActive(true); // Activar la cámara al inicio
+
+        // Inicializar DistanceCounter
+        distanceCounter = new DistanceCounterController();
     }
     private void initializeWorld(){
         Vector2 gravity = new Vector2(0,-9.8f);
@@ -113,15 +119,19 @@ public class Pantalla1 extends Screens {
 
         spriteBatch.end();
 
-        if (!isGameOver) {
-            renderer.render(oWorld, gameCamera.getCamera().combined);
-        }
+       // if (!isGameOver) {
+         //   renderer.render(oWorld, gameCamera.getCamera().combined);
+        //}
 
-
-        //oCamBox2D.update();
         spriteBatch.setProjectionMatrix(oCamUI.combined);
 
         spriteBatch.begin();
+        // Dibujar el contador de distancia en la esquina superior derecha
+        float distanceX = oCamUI.viewportWidth - 200; // Ajustar según sea necesario
+        float distanceY = oCamUI.viewportHeight - 20; // Ajustar según sea necesario
+        distanceCounter.draw(spriteBatch, distanceX, distanceY);
+
+
         Assets.font.draw(spriteBatch,"Fps:"+ Gdx.graphics.getFramesPerSecond(),0,20);
         // Mostrar mensaje de Game Over si el juego ha terminado
         if (isGameOver) {
@@ -147,13 +157,13 @@ public class Pantalla1 extends Screens {
         oWorld.step(delta,8,6);
         Vector2 ballPosition = ballPrefab.getBody().getPosition();
 
-        /// La cámara se actualiza a través de GameCameraController
+        // Actualizar contador de distancia
+        distanceCounter.update(delta, ballPrefab.getBody().getLinearVelocity().len());
+
         gameCamera.update(delta);
 
-        // Generar nuevas plataformas por debajo de la cámara
         generateNewPlatforms();
 
-        // Actualizar todas las plataformas
         for (PlatfomPrefab platform : platforms) {
             platform.update(delta);
         }
@@ -200,6 +210,7 @@ public class Pantalla1 extends Screens {
         renderer.dispose();
         gameOverFont.dispose();
         restartFont.dispose();
+        distanceCounter.dispose();
         super.dispose();
     }
 
@@ -247,5 +258,6 @@ public class Pantalla1 extends Screens {
         isGameOver = false;
         gameCamera.reset();
         gameCamera.setActive(true); // Reactivar la cámara
+        distanceCounter.reset(); // Reiniciar el contador de distancia
     }
 }
