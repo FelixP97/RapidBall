@@ -37,6 +37,7 @@ public class Pantalla1 extends Screens {
     private boolean isGameOver = false;
     private BitmapFont gameOverFont;
     private BitmapFont restartFont;
+    private BitmapFont distanceFont; // Nuevo font para la distancia
     private String restartMessage = "Jugar de nuevo";
     private float restartX, restartY;
 
@@ -59,6 +60,9 @@ public class Pantalla1 extends Screens {
 
         restartFont = new BitmapFont();
         restartFont.getData().setScale(2.25f);
+
+        distanceFont = new BitmapFont(); // Inicializar nuevo font para la distancia
+        distanceFont.getData().setScale(2f);
 
         restartX = oCamUI.viewportWidth / 2f - restartFont.getRegion().getRegionWidth() / 2;
         restartY = oCamUI.viewportHeight / 2f - gameOverFont.getCapHeight() / 2 - 50; // Ajustar la posición según sea necesario
@@ -142,8 +146,16 @@ public class Pantalla1 extends Screens {
             float messageY = oCamUI.viewportHeight / 2f + messageHeight / 2;
             gameOverFont.draw(spriteBatch, gameOverMessage, messageX, messageY);
 
+            // Mostrar la distancia recorrida
+            String distanceMessage = "Distance: " + (int) distanceCounter.getDistance()+"m ";
+            float distanceMessageWidth = distanceFont.getRegion().getRegionWidth();
+            float distanceMessageX = oCamUI.viewportWidth / 2f - distanceMessageWidth / 2 + 20;
+            float distanceMessageY = messageY - 50; // Debajo del mensaje de Game Over
+            distanceFont.draw(spriteBatch, distanceMessage, distanceMessageX, distanceMessageY);
+
+            // Posicionar el botón de "Jugar de nuevo" debajo de la distancia
             restartX = oCamUI.viewportWidth / 2f - restartFont.getRegion().getRegionWidth() / 2;
-            restartY = messageY - 50; // Debajo del mensaje de Game Over
+            restartY = distanceMessageY - 50; // Debajo del mensaje de distancia
             restartFont.draw(spriteBatch, restartMessage, restartX, restartY);
         }
         spriteBatch.end();
@@ -210,6 +222,7 @@ public class Pantalla1 extends Screens {
         renderer.dispose();
         gameOverFont.dispose();
         restartFont.dispose();
+        distanceFont.dispose(); // Disponer el nuevo font
         distanceCounter.dispose();
         super.dispose();
     }
